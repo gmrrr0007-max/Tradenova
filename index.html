@@ -19,7 +19,7 @@ h2{margin:34px 0 12px;font-size:22px}.grid{display:grid;grid-template-columns:re
 .up{color:var(--up);font-weight:600}.dn{color:var(--dn);font-weight:600}.pr{font-size:24px;font-weight:800;margin:4px 0}
 .tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}.tab{background:var(--sf);color:var(--tx);border:1px solid var(--bd);white-space:nowrap;line-height:1.35;padding:8px 12px;font-size:14px}.tab.on{border-color:var(--ac)}
 .tr{display:flex;gap:8px;margin-top:10px}.tr input{flex:1;min-width:0;padding:10px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font:inherit}
-.buy{background:var(--up)}.sell{background:var(--dn)}.row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:15px}
+.bigp{font-size:15px}#dchart svg{height:190px}.buy{background:var(--up)}.sell{background:var(--dn)}.row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:15px}
 footer{margin:40px 0 90px;color:var(--mu);font-size:13px;border-top:1px solid var(--bd);padding-top:16px}
 .ed{outline:1px dashed var(--ac);outline-offset:2px;border-radius:3px;min-width:20px;display:inline-block}
 .x{padding:2px 8px;margin-left:6px;background:var(--dn);font-size:13px}.add{margin-top:10px;background:var(--sf);color:var(--ac);border:1px dashed var(--ac)}
@@ -48,12 +48,12 @@ function drawLive(){const el=document.getElementById('live');if(!el)return;
 el.innerHTML=live.length?live.map(m=>{const up=m.c>=0;const p=m.p>=100?m.p.toLocaleString(undefined,{maximumFractionDigits:2}):Number(m.p).toPrecision(5);
 return `<div class="card"><b>${esc(m.n)}</b> <span class="l">${esc(m.s)}</span><div class="pr">${p}</div><span class="${up?'up':'dn'}">${up?'+':''}${m.c.toFixed(2)}% (24h)</span>${spark(m.h,up)}</div>`}).join(''):'<div class="card"><p>Loading live prices…</p></div>'}
 function render(){document.documentElement.style.setProperty('--ac',S.accent);
+if(location.hash==='#trade'&&!edit){renderTrade();return}
 root.innerHTML=`<div class="w"><header><div class="logo">📈 ${E('brand',S.brand)}</div>${edit?'':'<button class="g" data-a="admin">Admin</button>'}</header>
 <section class="hero">${E('hero',S.hero,'h1')}${E('sub',S.sub,'p')}<button data-a="start">${E('cta',S.cta)}</button></section>
 <div class="stats">${S.stats.map((s,i)=>`<div class="card"><div class="n">${E('stats.'+i+'.n',s.n)}</div><div class="l">${E('stats.'+i+'.l',s.l)}${X('stats',i)}</div></div>`).join('')}</div>${A('stats','Stat')}
 <h2>Live market</h2><div class="grid" id="live"></div>
 ${edit?`<p class="note">Crypto ids (CoinGecko, comma separated): ${E('coins',S.coins||'')}<br>Forex/Gold/Stocks (needs TWELVEDATA_KEY): ${E('fx',S.fx||'')}</p>`:''}
-<h2>Demo trading</h2><p class="note">Demo account with virtual money and simulated prices. Not real trading, no real money.</p><div id="demo"></div>
 <h2>What we offer</h2><div class="grid">${S.services.map((s,i)=>`<div class="card">${E('services.'+i+'.t',s.t,'h3')}${E('services.'+i+'.d',s.d,'p')}${X('services',i)}</div>`).join('')}</div>${A('services','Service')}
 <h2 id="start">${E('startTitle',S.startTitle)}</h2><div class="grid">${S.steps.map((s,i)=>`<div class="card">${E('steps.'+i+'.t',s.t,'h3')}${E('steps.'+i+'.d',s.d,'p')}${X('steps',i)}</div>`).join('')}</div>${A('steps','Step')}<p><a class="btn" href="mailto:${esc(S.contact)}">Contact us</a></p>
 <h2>${E('plansTitle',S.plansTitle)}</h2><div class="grid">${S.plans.map((s,i)=>`<div class="card">${E('plans.'+i+'.t',s.t,'h3')}<div class="pr">${E('plans.'+i+'.pr',s.pr)}</div>${E('plans.'+i+'.d',s.d,'p')}${X('plans',i)}</div>`).join('')}</div>${A('plans','Plan')}
@@ -103,6 +103,13 @@ if(t.dataset.s!==undefined){cur=+t.dataset.s;upd()}
 else if(t.dataset.d==='reset'){acc={cash:START,pos:{},hist:[]};saveAcc();upd()}
 else trade(t.dataset.d)});
 setInterval(()=>{SIM.forEach(m=>{m.p*=1+(Math.random()-.5)*2*m.v;m.h.push(m.p);if(m.h.length>60)m.h.shift()});upd()},1000);
+function renderTrade(){root.innerHTML=`<div class="w"><header><div class="logo">📈 ${esc(S.brand)}</div><button class="g" data-a="home">← Home</button></header>
+<h1 style="font-size:28px;margin:6px 0 4px">Trading terminal <span class="l">DEMO</span></h1>
+<p class="note">Practice with virtual money and simulated prices. This is not real trading and no real money is used.</p>
+<div id="demo" style="margin-top:14px"></div>
+<h2>How to use</h2><div class="grid"><div class="card"><h3>1. Pick a market</h3><p>Tap a symbol tab to see its live moving chart.</p></div><div class="card"><h3>2. Buy or Sell</h3><p>Enter quantity and tap Buy. Tap Sell to close what you hold.</p></div><div class="card"><h3>3. Track profit</h3><p>Watch your demo balance and profit or loss update every second.</p></div></div>
+<footer>Demo trading uses virtual money and simulated prices. It is for practice only and is not investment advice.</footer></div>`;drawDemo()}
+window.addEventListener('hashchange',()=>{window.scrollTo(0,0);render();loadPrices()});
 function setP(p,v){const a=p.split('.');let o=S;for(let i=0;i<a.length-1;i++)o=o[a[i]];o[a[a.length-1]]=v}
 root.addEventListener('input',e=>{const p=e.target.dataset&&e.target.dataset.p;if(p)setP(p,e.target.textContent)});
 const blank={stats:{n:'0',l:'Label'},services:{t:'Title',d:'Description'},steps:{t:'Step',d:'Details'},plans:{t:'Plan',pr:'₹0',d:'Details'},reviews:{n:'Name',q:'Review'},faqs:{q:'Question',a:'Answer'}};
@@ -110,8 +117,8 @@ async function api(body){return fetch('/api/content',{method:'POST',headers:{'Co
 async function admin(){pw=prompt('Admin password')||'';if(!pw)return;try{const r=await api({check:true});if(r.ok){sessionStorage.setItem('pw',pw);edit=true;render()}else alert('Wrong password')}catch(e){alert('Server not reachable')}}
 async function save(){const b=document.getElementById('save');b.textContent='Saving…';try{const r=await api({data:S});if(r.ok){edit=false;render();loadPrices()}else{const j=await r.json();b.textContent='Failed: '+(j.error||r.status)}}catch(e){b.textContent='Failed, retry'}}
 root.addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const [k,x,i]=a.dataset.a.split(':');
-if(k==='start'&&!edit)document.getElementById('start').scrollIntoView({behavior:'smooth'});
-else if(k==='admin')admin();else if(k==='cancel')location.reload();
+if(k==='start'&&!edit){location.hash='trade'}
+else if(k==='home')location.hash='';else if(k==='admin')admin();else if(k==='cancel')location.reload();
 else if(k==='add'){S[x].push({...blank[x]});render()}else if(k==='del'){S[x].splice(+i,1);render()}});
 async function loadPrices(){if(edit)return;try{live=await (await fetch('/api/prices')).json();drawLive()}catch(e){}}
 (async()=>{try{const d=await (await fetch('/api/content')).json();if(d&&d.brand)S=Object.assign({},DEF,d)}catch(e){}render();loadPrices();setInterval(loadPrices,30000)})();
