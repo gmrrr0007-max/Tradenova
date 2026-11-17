@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TradeNova</title>
+<style>
+:root{--bg:#f6f8fb;--sf:#fff;--tx:#0f1b2d;--mu:#5b6b82;--bd:#e1e7ef;--up:#0a9f5c;--dn:#d6334a;--ac:#2563eb;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1220;--sf:#131c2e;--tx:#eaf0fa;--mu:#93a3bd;--bd:#22304a;--up:#2ecc8f;--dn:#ff6b81;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:980px;margin:0 auto;padding:0 18px}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 0}.logo{font-weight:800;font-size:20px}
+button,.btn{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:10px 16px;background:var(--ac);color:#fff;font-weight:600;text-decoration:none;display:inline-block}
+button.g{background:transparent;color:var(--tx);border:1px solid var(--bd)}
+.hero{padding:34px 0 22px}.hero h1{font-size:clamp(28px,7vw,48px);line-height:1.12;margin:0 0 12px}.hero p{color:var(--mu);max-width:560px;margin:0 0 20px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:22px 0}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:16px}
+.n{font-size:26px;font-weight:800;color:var(--ac)}.l,.note{color:var(--mu);font-size:14px}
+h2{margin:34px 0 12px;font-size:22px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.card h3{margin:0 0 6px;font-size:17px}.card p{margin:0;color:var(--mu)}
+.up{color:var(--up);font-weight:600}.dn{color:var(--dn);font-weight:600}.pr{font-size:24px;font-weight:800;margin:4px 0}
+footer{margin:40px 0 90px;color:var(--mu);font-size:13px;border-top:1px solid var(--bd);padding-top:16px}
+.ed{outline:1px dashed var(--ac);outline-offset:2px;border-radius:3px;min-width:20px;display:inline-block}
+.x{padding:2px 8px;margin-left:6px;background:var(--dn);font-size:13px}.add{margin-top:10px;background:var(--sf);color:var(--ac);border:1px dashed var(--ac)}
+.bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;padding:12px;background:var(--sf);border-top:1px solid var(--bd);z-index:5}
+.bar input{width:44px;height:38px;border:0;background:none;padding:0}
+</style></head>
+<body><div id="root"></div>
+<script>
+const DEF={brand:"TradeNova",hero:"Trade smarter, every day",sub:"Live market watch, clear insights and simple tools for new and active traders.",cta:"Get started",accent:"#2563eb",
+stats:[{n:"50K+",l:"Active traders"},{n:"120+",l:"Markets covered"},{n:"24/7",l:"Support"}],
+coins:"bitcoin,ethereum,solana",fx:"EUR/USD,XAU/USD",
+services:[{t:"Market insights",d:"Daily analysis and key levels to watch."},{t:"Learn to trade",d:"Beginner-friendly lessons and strategies."},{t:"Risk tools",d:"Position size and stop-loss calculators."}],
+startTitle:"Get started in 3 steps",
+steps:[{t:"1. Contact us",d:"Send us a message with what you want to learn or trade."},{t:"2. Get guidance",d:"We share a simple plan and the right tools for you."},{t:"3. Start learning",d:"Practice with small risk and grow step by step."}],
+about:"We help people understand markets with clear, honest information.",contact:"hello@tradenova.example"};
+let S=DEF,edit=false,live=[],pw=sessionStorage.getItem('pw')||'';
+const root=document.getElementById('root');
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const E=(p,v,t)=>`<${t||'span'} data-p="${p}"${edit?' contenteditable="true" class="ed"':''}>${esc(v)}</${t||'span'}>`;
+const X=(k,i)=>edit?`<button class="x" data-a="del:${k}:${i}">✕</button>`:'';
+const A=(k,l)=>edit?`<button class="add" data-a="add:${k}">+ ${l}</button>`:'';
+function spark(h,up){if(!h||h.length<2)return'';const mn=Math.min(...h),mx=Math.max(...h),r=mx-mn||1;
+const pts=h.map((y,i)=>(i/(h.length-1)*300).toFixed(1)+','+(70-(y-mn)/r*60).toFixed(1)).join(' ');
+return '<svg viewBox="0 0 300 80" width="100%" height="80" preserveAspectRatio="none"><polyline fill="none" stroke="'+(up?'var(--up)':'var(--dn)')+'" stroke-width="2.5" points="'+pts+'"/></svg>'}
+function drawLive(){const el=document.getElementById('live');if(!el)return;
+el.innerHTML=live.length?live.map(m=>{const up=m.c>=0;const p=m.p>=100?m.p.toLocaleString(undefined,{maximumFractionDigits:2}):Number(m.p).toPrecision(5);
+return `<div class="card"><b>${esc(m.n)}</b> <span class="l">${esc(m.s)}</span><div class="pr">${p}</div><span class="${up?'up':'dn'}">${up?'+':''}${m.c.toFixed(2)}% (24h)</span>${spark(m.h,up)}</div>`}).join(''):'<div class="card"><p>Loading live prices…</p></div>'}
+function render(){document.documentElement.style.setProperty('--ac',S.accent);
+root.innerHTML=`<div class="w"><header><div class="logo">📈 ${E('brand',S.brand)}</div>${edit?'':'<button class="g" data-a="admin">Admin</button>'}</header>
+<section class="hero">${E('hero',S.hero,'h1')}${E('sub',S.sub,'p')}<button data-a="start">${E('cta',S.cta)}</button></section>
+<div class="stats">${S.stats.map((s,i)=>`<div class="card"><div class="n">${E('stats.'+i+'.n',s.n)}</div><div class="l">${E('stats.'+i+'.l',s.l)}${X('stats',i)}</div></div>`).join('')}</div>${A('stats','Stat')}
+<h2>Live market</h2><div class="grid" id="live"></div>
+${edit?`<p class="note">Crypto ids (CoinGecko, comma separated): ${E('coins',S.coins||'')}<br>Forex/Gold/Stocks (needs TWELVEDATA_KEY): ${E('fx',S.fx||'')}</p>`:''}
+<h2>What we offer</h2><div class="grid">${S.services.map((s,i)=>`<div class="card">${E('services.'+i+'.t',s.t,'h3')}${E('services.'+i+'.d',s.d,'p')}${X('services',i)}</div>`).join('')}</div>${A('services','Service')}
+<h2 id="start">${E('startTitle',S.startTitle)}</h2><div class="grid">${S.steps.map((s,i)=>`<div class="card">${E('steps.'+i+'.t',s.t,'h3')}${E('steps.'+i+'.d',s.d,'p')}${X('steps',i)}</div>`).join('')}</div>${A('steps','Step')}<p><a class="btn" href="mailto:${esc(S.contact)}">Contact us</a></p>
+<h2>About</h2>${E('about',S.about,'p')}<h2>Contact</h2>${E('contact',S.contact,'p')}
+<footer>Prices are provided for information only and may be delayed. Trading involves risk; this is not investment advice.</footer></div>
+${edit?`<div class="bar"><label>🎨 <input type="color" id="col" value="${S.accent}"></label><button id="save">Save</button><button class="g" data-a="cancel">Cancel</button></div>`:''}`;
+const c=document.getElementById('col');if(c)c.oninput=e=>{S.accent=e.target.value;document.documentElement.style.setProperty('--ac',S.accent)};
+const sv=document.getElementById('save');if(sv)sv.onclick=save;drawLive()}
+function setP(p,v){const a=p.split('.');let o=S;for(let i=0;i<a.length-1;i++)o=o[a[i]];o[a[a.length-1]]=v}
+root.addEventListener('input',e=>{const p=e.target.dataset&&e.target.dataset.p;if(p)setP(p,e.target.textContent)});
+const blank={stats:{n:'0',l:'Label'},services:{t:'Title',d:'Description'},steps:{t:'Step',d:'Details'}};
+async function api(body){return fetch('/api/content',{method:'POST',headers:{'Content-Type':'application/json','x-admin-password':pw},body:JSON.stringify(body)})}
+async function admin(){pw=prompt('Admin password')||'';if(!pw)return;try{const r=await api({check:true});if(r.ok){sessionStorage.setItem('pw',pw);edit=true;render()}else alert('Wrong password')}catch(e){alert('Server not reachable')}}
+async function save(){const b=document.getElementById('save');b.textContent='Saving…';try{const r=await api({data:S});if(r.ok){edit=false;render();loadPrices()}else{const j=await r.json();b.textContent='Failed: '+(j.error||r.status)}}catch(e){b.textContent='Failed, retry'}}
+root.addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const [k,x,i]=a.dataset.a.split(':');
+if(k==='start'&&!edit)document.getElementById('start').scrollIntoView({behavior:'smooth'});
+else if(k==='admin')admin();else if(k==='cancel')location.reload();
+else if(k==='add'){S[x].push({...blank[x]});render()}else if(k==='del'){S[x].splice(+i,1);render()}});
+async function loadPrices(){if(edit)return;try{live=await (await fetch('/api/prices')).json();drawLive()}catch(e){}}
+(async()=>{try{const d=await (await fetch('/api/content')).json();if(d&&d.brand)S=d}catch(e){}render();loadPrices();setInterval(loadPrices,30000)})();
+</script></body></html>
