@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TradeNova</title>
+<style>
+:root{--bg:#f6f8fb;--sf:#fff;--tx:#0f1b2d;--mu:#5b6b82;--bd:#e1e7ef;--up:#0a9f5c;--dn:#d6334a;--ac:#2563eb;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1220;--sf:#131c2e;--tx:#eaf0fa;--mu:#93a3bd;--bd:#22304a;--up:#2ecc8f;--dn:#ff6b81;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:980px;margin:0 auto;padding:0 18px}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 0}.logo{font-weight:800;font-size:20px}
+button,.btn{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:10px 16px;background:var(--ac);color:#fff;font-weight:600;text-decoration:none;display:inline-block}
+button.g{background:transparent;color:var(--tx);border:1px solid var(--bd)}
+.hero{padding:34px 0 22px}.hero h1{font-size:clamp(28px,7vw,48px);line-height:1.12;margin:0 0 12px}.hero p{color:var(--mu);max-width:560px;margin:0 0 20px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:22px 0}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:16px}
+.n{font-size:26px;font-weight:800;color:var(--ac)}.l,.note{color:var(--mu);font-size:14px}
+h2{margin:34px 0 12px;font-size:22px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.card h3{margin:0 0 6px;font-size:17px}.card p{margin:0;color:var(--mu)}
+.up{color:var(--up);font-weight:600}.dn{color:var(--dn);font-weight:600}.pr{font-size:24px;font-weight:800;margin:4px 0}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}.tab{background:var(--sf);color:var(--tx);border:1px solid var(--bd);white-space:nowrap;line-height:1.35;padding:8px 12px;font-size:14px}.tab.on{border-color:var(--ac)}
+.tr{display:flex;gap:8px;margin-top:10px}.tr input{flex:1;min-width:0;padding:10px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font:inherit}
+.buy{background:var(--up)}.sell{background:var(--dn)}.row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:15px}
+footer{margin:40px 0 90px;color:var(--mu);font-size:13px;border-top:1px solid var(--bd);padding-top:16px}
+.ed{outline:1px dashed var(--ac);outline-offset:2px;border-radius:3px;min-width:20px;display:inline-block}
+.x{padding:2px 8px;margin-left:6px;background:var(--dn);font-size:13px}.add{margin-top:10px;background:var(--sf);color:var(--ac);border:1px dashed var(--ac)}
+.bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;padding:12px;background:var(--sf);border-top:1px solid var(--bd);z-index:5}
+.bar input{width:44px;height:38px;border:0;background:none;padding:0}
+</style></head>
+<body><div id="root"></div>
+<script>
+const DEF={brand:"TradeNova",hero:"Trade smarter, every day",sub:"Live market watch, clear insights and simple tools for new and active traders.",cta:"Get started",accent:"#2563eb",
+stats:[{n:"50K+",l:"Active traders"},{n:"120+",l:"Markets covered"},{n:"24/7",l:"Support"}],
+coins:"bitcoin,ethereum,solana",fx:"EUR/USD,XAU/USD",
+services:[{t:"Market insights",d:"Daily analysis and key levels to watch."},{t:"Learn to trade",d:"Beginner-friendly lessons and strategies."},{t:"Risk tools",d:"Position size and stop-loss calculators."}],
+startTitle:"Get started in 3 steps",
+steps:[{t:"1. Contact us",d:"Send us a message with what you want to learn or trade."},{t:"2. Get guidance",d:"We share a simple plan and the right tools for you."},{t:"3. Start learning",d:"Practice with small risk and grow step by step."}],
+plansTitle:"Plans",plans:[{t:"Starter",pr:"₹499/mo",d:"Daily market insights and basic learning videos."},{t:"Pro",pr:"₹1,499/mo",d:"Everything in Starter plus live Q&A and risk tools."},{t:"Premium",pr:"₹2,999/mo",d:"Personal guidance and priority support."}],reviewsTitle:"What traders say",reviews:[{n:"Rahul S.",q:"Simple explanations, helped me manage risk better."},{n:"Priya M.",q:"The daily insights are clear and easy to follow."}],faqTitle:"FAQ",faqs:[{q:"Is this investment advice?",a:"No. Content is for education only. Trading involves risk."},{q:"How do I start?",a:"Tap Get started and contact us. We will guide you."}],wa:"",about:"We help people understand markets with clear, honest information.",contact:"hello@tradenova.example"};
+let S=DEF,edit=false,live=[],pw=sessionStorage.getItem('pw')||'';
+const root=document.getElementById('root');
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const E=(p,v,t)=>`<${t||'span'} data-p="${p}"${edit?' contenteditable="true" class="ed"':''}>${esc(v)}</${t||'span'}>`;
+const X=(k,i)=>edit?`<button class="x" data-a="del:${k}:${i}">✕</button>`:'';
+const A=(k,l)=>edit?`<button class="add" data-a="add:${k}">+ ${l}</button>`:'';
+function spark(h,up){if(!h||h.length<2)return'';const mn=Math.min(...h),mx=Math.max(...h),r=mx-mn||1;
+const pts=h.map((y,i)=>(i/(h.length-1)*300).toFixed(1)+','+(70-(y-mn)/r*60).toFixed(1)).join(' ');
+return '<svg viewBox="0 0 300 80" width="100%" height="80" preserveAspectRatio="none"><polyline fill="none" stroke="'+(up?'var(--up)':'var(--dn)')+'" stroke-width="2.5" points="'+pts+'"/></svg>'}
+function drawLive(){const el=document.getElementById('live');if(!el)return;
+el.innerHTML=live.length?live.map(m=>{const up=m.c>=0;const p=m.p>=100?m.p.toLocaleString(undefined,{maximumFractionDigits:2}):Number(m.p).toPrecision(5);
+return `<div class="card"><b>${esc(m.n)}</b> <span class="l">${esc(m.s)}</span><div class="pr">${p}</div><span class="${up?'up':'dn'}">${up?'+':''}${m.c.toFixed(2)}% (24h)</span>${spark(m.h,up)}</div>`}).join(''):'<div class="card"><p>Loading live prices…</p></div>'}
+function render(){document.documentElement.style.setProperty('--ac',S.accent);
+root.innerHTML=`<div class="w"><header><div class="logo">📈 ${E('brand',S.brand)}</div>${edit?'':'<button class="g" data-a="admin">Admin</button>'}</header>
+<section class="hero">${E('hero',S.hero,'h1')}${E('sub',S.sub,'p')}<button data-a="start">${E('cta',S.cta)}</button></section>
+<div class="stats">${S.stats.map((s,i)=>`<div class="card"><div class="n">${E('stats.'+i+'.n',s.n)}</div><div class="l">${E('stats.'+i+'.l',s.l)}${X('stats',i)}</div></div>`).join('')}</div>${A('stats','Stat')}
+<h2>Live market</h2><div class="grid" id="live"></div>
+${edit?`<p class="note">Crypto ids (CoinGecko, comma separated): ${E('coins',S.coins||'')}<br>Forex/Gold/Stocks (needs TWELVEDATA_KEY): ${E('fx',S.fx||'')}</p>`:''}
+<h2>Demo trading</h2><p class="note">Demo account with virtual money and simulated prices. Not real trading, no real money.</p><div id="demo"></div>
+<h2>What we offer</h2><div class="grid">${S.services.map((s,i)=>`<div class="card">${E('services.'+i+'.t',s.t,'h3')}${E('services.'+i+'.d',s.d,'p')}${X('services',i)}</div>`).join('')}</div>${A('services','Service')}
+<h2 id="start">${E('startTitle',S.startTitle)}</h2><div class="grid">${S.steps.map((s,i)=>`<div class="card">${E('steps.'+i+'.t',s.t,'h3')}${E('steps.'+i+'.d',s.d,'p')}${X('steps',i)}</div>`).join('')}</div>${A('steps','Step')}<p><a class="btn" href="mailto:${esc(S.contact)}">Contact us</a></p>
+<h2>${E('plansTitle',S.plansTitle)}</h2><div class="grid">${S.plans.map((s,i)=>`<div class="card">${E('plans.'+i+'.t',s.t,'h3')}<div class="pr">${E('plans.'+i+'.pr',s.pr)}</div>${E('plans.'+i+'.d',s.d,'p')}${X('plans',i)}</div>`).join('')}</div>${A('plans','Plan')}
+<h2>${E('reviewsTitle',S.reviewsTitle)}</h2><div class="grid">${S.reviews.map((s,i)=>`<div class="card">${E('reviews.'+i+'.q',s.q,'p')}<p class="note">— ${E('reviews.'+i+'.n',s.n)}${X('reviews',i)}</p></div>`).join('')}</div>${A('reviews','Review')}
+<h2>${E('faqTitle',S.faqTitle)}</h2><div class="grid">${S.faqs.map((s,i)=>`<div class="card">${E('faqs.'+i+'.q',s.q,'h3')}${E('faqs.'+i+'.a',s.a,'p')}${X('faqs',i)}</div>`).join('')}</div>${A('faqs','FAQ')}
+<h2>About</h2>${E('about',S.about,'p')}<h2>Contact</h2>${E('contact',S.contact,'p')}${edit?`<p class="note">WhatsApp number with country code (optional): ${E('wa',S.wa||'')}</p>`:''}${S.wa&&!edit?`<p><a class="btn" href="https://wa.me/${esc(String(S.wa).replace(/\D/g,''))}">Chat on WhatsApp</a></p>`:''}
+<footer>Demo trading uses virtual money and simulated prices. Prices are provided for information only and may be delayed. Trading involves risk; this is not investment advice.</footer></div>
+${edit?`<div class="bar"><label>🎨 <input type="color" id="col" value="${S.accent}"></label><button id="save">Save</button><button class="g" data-a="cancel">Cancel</button></div>`:''}`;
+const c=document.getElementById('col');if(c)c.oninput=e=>{S.accent=e.target.value;document.documentElement.style.setProperty('--ac',S.accent)};
+const sv=document.getElementById('save');if(sv)sv.onclick=save;drawLive();drawDemo()}
+
+const SIM=[{s:'NIFTY 50',p:24000,v:.0007},{s:'BANKNIFTY',p:52000,v:.0009},{s:'BTC/USD',p:68000,v:.0018},{s:'GOLD',p:2640,v:.0008},{s:'EUR/USD',p:1.084,v:.0004}];
+SIM.forEach(m=>{m.h=[m.p];for(let i=0;i<59;i++){m.p*=1+(Math.random()-.5)*2*m.v;m.h.push(m.p)}m.o=m.h[0]});
+const START=1000000;let acc={cash:START,pos:{},hist:[]},cur=0;
+try{const x=JSON.parse(localStorage.getItem('demoacc')||'null');if(x&&typeof x.cash==='number')acc=x}catch(e){}
+const saveAcc=()=>{try{localStorage.setItem('demoacc',JSON.stringify(acc))}catch(e){}};
+const $=id=>document.getElementById(id);
+const inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const fm=v=>v>=1000?v.toLocaleString('en-IN',{maximumFractionDigits:2}):v.toFixed(v<10?4:2);
+const cls=v=>v>=0?'up':'dn';
+function equity(){let e=acc.cash;for(const k in acc.pos){const m=SIM.find(x=>x.s===k);if(m)e+=acc.pos[k].q*m.p}return e}
+function trade(side){const q=Math.floor(+$('dq').value);const m=SIM[cur];const msg=$('dmsg');
+if(!(q>0)){msg.textContent='Enter quantity';return}
+const pos=acc.pos[m.s]||{q:0,a:0};
+if(side==='buy'){const cost=q*m.p;if(cost>acc.cash){msg.textContent='Not enough virtual balance';return}acc.cash-=cost;pos.a=(pos.q*pos.a+cost)/(pos.q+q);pos.q+=q}
+else{if(q>pos.q){msg.textContent='You hold only '+pos.q+' of '+m.s;return}acc.cash+=q*m.p;pos.q-=q}
+if(pos.q>0)acc.pos[m.s]=pos;else delete acc.pos[m.s];
+acc.hist.unshift({t:new Date().toLocaleTimeString(),s:m.s,side,q,p:m.p});acc.hist=acc.hist.slice(0,30);
+msg.textContent=(side==='buy'?'Bought ':'Sold ')+q+' '+m.s+' @ '+fm(m.p);saveAcc();upd()}
+function drawDemo(){const el=$('demo');if(!el)return;
+el.innerHTML=`<div class="tabs" id="dtabs"></div><div class="card" style="margin-top:10px"><div id="dprice"></div><div id="dchart"></div>
+<div class="tr"><input id="dq" type="number" min="1" value="1" aria-label="Quantity"><button class="buy" data-d="buy">Buy</button><button class="sell" data-d="sell">Sell</button></div><p class="note" id="dmsg"></p></div>
+<div class="grid" style="margin-top:12px"><div class="card" id="dacc"></div><div class="card" id="dpos"></div></div>
+<div class="card" style="margin-top:12px" id="dhist"></div><button class="g" data-d="reset" style="margin-top:10px">Reset demo account</button>`;upd()}
+function upd(){if(!$('dtabs'))return;const m=SIM[cur];
+$('dtabs').innerHTML=SIM.map((x,i)=>`<button class="tab${i===cur?' on':''}" data-s="${i}">${x.s}<br><span class="${cls(x.p-x.o)}">${fm(x.p)}</span></button>`).join('');
+const ch=(m.p-m.o)/m.o*100;
+$('dprice').innerHTML=`<b>${m.s}</b> <span class="l">simulated</span><div class="pr">${fm(m.p)} <span class="${cls(ch)}" style="font-size:16px">${ch>=0?'+':''}${ch.toFixed(2)}%</span></div>`;
+$('dchart').innerHTML=spark(m.h,ch>=0);
+const eq=equity(),pl=eq-START;let hv=eq-acc.cash;
+$('dacc').innerHTML=`<h3>Demo account</h3><div class="row"><span>Cash</span><b>${inr(acc.cash)}</b></div><div class="row"><span>Holdings</span><b>${inr(hv)}</b></div><div class="row"><span>Total</span><b>${inr(eq)}</b></div><div class="row"><span>Profit / Loss</span><b class="${cls(pl)}">${pl>=0?'+':''}${inr(pl)}</b></div>`;
+const ks=Object.keys(acc.pos);
+$('dpos').innerHTML='<h3>Positions</h3>'+(ks.length?ks.map(k=>{const x=acc.pos[k],mm=SIM.find(z=>z.s===k),pp=(mm.p-x.a)*x.q;return `<div class="row"><span>${esc(k)} × ${x.q}</span><b class="${cls(pp)}">${pp>=0?'+':''}${inr(pp)}</b></div>`}).join(''):'<p>No open positions. Tap Buy to start.</p>');
+$('dhist').innerHTML='<h3>Recent trades</h3>'+(acc.hist.length?acc.hist.slice(0,8).map(h=>`<div class="row"><span>${esc(h.t)} ${h.side==='buy'?'Bought':'Sold'} ${h.q} ${esc(h.s)}</span><span>${fm(h.p)}</span></div>`).join(''):'<p>No trades yet.</p>')}
+root.addEventListener('click',e=>{const t=e.target.closest('[data-d],[data-s]');if(!t)return;
+if(t.dataset.s!==undefined){cur=+t.dataset.s;upd()}
+else if(t.dataset.d==='reset'){acc={cash:START,pos:{},hist:[]};saveAcc();upd()}
+else trade(t.dataset.d)});
+setInterval(()=>{SIM.forEach(m=>{m.p*=1+(Math.random()-.5)*2*m.v;m.h.push(m.p);if(m.h.length>60)m.h.shift()});upd()},1000);
+function setP(p,v){const a=p.split('.');let o=S;for(let i=0;i<a.length-1;i++)o=o[a[i]];o[a[a.length-1]]=v}
+root.addEventListener('input',e=>{const p=e.target.dataset&&e.target.dataset.p;if(p)setP(p,e.target.textContent)});
+const blank={stats:{n:'0',l:'Label'},services:{t:'Title',d:'Description'},steps:{t:'Step',d:'Details'},plans:{t:'Plan',pr:'₹0',d:'Details'},reviews:{n:'Name',q:'Review'},faqs:{q:'Question',a:'Answer'}};
+async function api(body){return fetch('/api/content',{method:'POST',headers:{'Content-Type':'application/json','x-admin-password':pw},body:JSON.stringify(body)})}
+async function admin(){pw=prompt('Admin password')||'';if(!pw)return;try{const r=await api({check:true});if(r.ok){sessionStorage.setItem('pw',pw);edit=true;render()}else alert('Wrong password')}catch(e){alert('Server not reachable')}}
+async function save(){const b=document.getElementById('save');b.textContent='Saving…';try{const r=await api({data:S});if(r.ok){edit=false;render();loadPrices()}else{const j=await r.json();b.textContent='Failed: '+(j.error||r.status)}}catch(e){b.textContent='Failed, retry'}}
+root.addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;const [k,x,i]=a.dataset.a.split(':');
+if(k==='start'&&!edit)document.getElementById('start').scrollIntoView({behavior:'smooth'});
+else if(k==='admin')admin();else if(k==='cancel')location.reload();
+else if(k==='add'){S[x].push({...blank[x]});render()}else if(k==='del'){S[x].splice(+i,1);render()}});
+async function loadPrices(){if(edit)return;try{live=await (await fetch('/api/prices')).json();drawLive()}catch(e){}}
+(async()=>{try{const d=await (await fetch('/api/content')).json();if(d&&d.brand)S=Object.assign({},DEF,d)}catch(e){}render();loadPrices();setInterval(loadPrices,30000)})();
+</script></body></html>
