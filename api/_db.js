@@ -1,4 +1,4 @@
-const U = process.env.SUPABASE_URL, K = process.env.SUPABASE_SERVICE_KEY;
+const U = (process.env.SUPABASE_URL || '').trim(), K = (process.env.SUPABASE_SERVICE_KEY || '').replace(/\s/g, '');
 const H = { apikey: K, Authorization: 'Bearer ' + K, 'Content-Type': 'application/json' };
 exports.get = async () => {
   if (!U || !K) return null;
